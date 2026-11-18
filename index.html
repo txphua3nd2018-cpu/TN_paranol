@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Khám Phá Bí Mật Đường Parabol - Toán Học Vui Nhộn</title>
+    <!-- Tải Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Tải Google Fonts: Quicksand & Nunito hỗ trợ tiếng Việt cực đẹp và thân thiện -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&family=Quicksand:wght@500;600;700&display=swap" rel="stylesheet">
+    <!-- Tải Canvas Confetti cho hiệu ứng pháo giấy -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Quicksand', 'sans-serif'],
+                        display: ['Nunito', 'sans-serif'],
+                    },
+                    animation: {
+                        'bounce-slow': 'bounce 2.5s infinite',
+                        'wiggle': 'wiggle 0.5s ease-in-out',
+                        'pop-in': 'popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards',
+                    },
+                    keyframes: {
+                        wiggle: {
+                            '0%, 100%': { transform: 'translateX(0)' },
+                            '20%': { transform: 'translateX(-8px) rotate(-1deg)' },
+                            '40%': { transform: 'translateX(8px) rotate(1deg)' },
+                            '60%': { transform: 'translateX(-6px)' },
+                            '80%': { transform: 'translateX(6px)' },
+                        },
+                        popIn: {
+                            '0%': { opacity: '0', transform: 'scale(0.9) translateY(10px)' },
+                            '100%': { opacity: '1', transform: 'scale(1) translateY(0)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Nền họa tiết lưới toán học nhẹ nhàng */
+        body {
+            background-color: #f0f7ff;
+            background-image: 
+                radial-gradient(#bae6fd 1.5px, transparent 1.5px),
+                radial-gradient(#e0e7ff 1.5px, #f0f7ff 1.5px);
+            background-size: 32px 32px;
+            background-position: 0 0, 16px 16px;
+        }
+        
+        /* Hiệu ứng nút bấm nổi 3D thân thiện */
+        .btn-3d {
+            transition: all 0.15s ease;
+            box-shadow: 0 4px 0 rgba(0, 0, 0, 0.12);
+        }
+        .btn-3d:active:not(:disabled) {
+            transform: translateY(3px);
+            box-shadow: 0 1px 0 rgba(0, 0, 0, 0.12);
+        }
+        
+        .option-card {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 0 #cbd5e1;
+        }
+        .option-card:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 0 #93c5fd;
+            border-color: #3b82f6;
+        }
+        .option-card:active:not(:disabled) {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 #93c5fd;
+        }
+        .option-correct {
+            background-color: #dcfce7 !important;
+            border-color: #22c55e !important;
+            box-shadow: 0 4px 0 #16a34a !important;
+            color: #14532d !important;
+        }
+        .option-wrong {
+            background-color: #fee2e2 !important;
+            border-color: #ef4444 !important;
+            box-shadow: 0 4px 0 #dc2626 !important;
+            color: #7f1d1d !important;
+        }
+        .option-dimmed {
+            opacity: 0.55;
+            box-shadow: 0 2px 0 #cbd5e1;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between text-slate-800 selection:bg-blue-200">
+
+    <!-- Thanh điều hướng / Header trên cùng -->
+    <header class="w-full bg-white/90 backdrop-blur-md border-b border-blue-100 sticky top-0 z-20 shadow-sm">
+        <div class="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <!-- Icon Parabol SVG -->
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white shadow-md">
+                    <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M4 4c2 14 14 14 16 0" />
+                        <line x1="12" y1="2" x2="12" y2="22" stroke-dasharray="2 2" stroke-width="1.5" opacity="0.7"/>
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="font-display font-extrabold text-base sm:text-lg text-slate-800 leading-tight">
+                        Toán Học Thực Tế
+                    </h1>
+                    <p class="text-xs font-semibold text-blue-600">Chủ đề: Đường Parabol Kỳ Diệu</p>
+                </div>
+            </div>
+
+            <!-- Nút bật/tắt âm thanh & Hiển thị điểm -->
+            <div class="flex items-center gap-2 sm:gap-4">
+                <button id="sound-toggle" onclick="toggleSound()" title="Bật/Tắt âm thanh" class="p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 transition-colors cursor-pointer">
+                    <svg id="sound-on-icon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path>
+                    </svg>
+                    <svg id="sound-off-icon" class="w-5 h-5 hidden text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15zM17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2"></path>
+                    </svg>
+                </button>
+
+                <div id="score-badge" class="hidden flex items-center gap-1.5 bg-amber-100 border border-amber-300 text-amber-800 px-3.5 py-1.5 rounded-xl font-display font-extrabold text-sm sm:text-base shadow-sm">
+                    <span>⭐</span>
+                    <span id="current-score">0</span>
+                    <span class="text-xs font-bold text-amber-600">/ 50</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Khu vực nội dung chính -->
+    <main class="flex-grow flex items-center justify-center p-4 sm:p-6">
+        <div class="w-full max-w-3xl">
+
+            <!-- MÀN HÌNH 1: BẮT ĐẦU (START SCREEN) -->
+            <div id="start-screen" class="bg-white rounded-3xl p-6 sm:p-10 shadow-xl border-2 border-blue-100 text-center animate-pop-in">
+                <div class="inline-flex items-center justify-center w-24 h-24 rounded-3xl bg-gradient-to-tr from-blue-100 to-indigo-100 mb-6 relative animate-bounce-slow">
+                    <span class="text-5xl">📡</span>
+                    <span class="absolute -bottom-2 -right-2 text-2xl bg-white rounded-full p-1 shadow">✨</span>
+                </div>
+                
+                <span class="inline-block px-4 py-1.5 rounded-full bg-blue-100 text-blue-700 font-bold text-xs sm:text-sm uppercase tracking-wider mb-3">
+                    Thử Thách Khởi Động Sau Video
+                </span>
+                
+                <h2 class="font-display font-black text-2xl sm:text-4xl text-slate-800 mb-4 leading-tight">
+                    Giải Mã Bí Mật Hình Dạng <br class="hidden sm:inline">
+                    <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">Chảo Thu Vệ Tinh & Đèn Pha</span>
+                </h2>
+                
+                <p class="text-slate-600 text-base sm:text-lg max-w-xl mx-auto mb-8 leading-relaxed">
+                    Chào mừng các nhà toán học trẻ! Hãy vận dụng khả năng quan sát tinh tường của các em qua <strong>5 câu hỏi trắc nghiệm vui nhộn</strong> để khám phá đường cong bí ẩn ẩn giấu trong các thiết bị hiện đại nhé!
+                </p>
+
+                <div class="grid grid-cols-3 gap-3 max-w-md mx-auto mb-8 text-sm">
+                    <div class="bg-slate-50 p-3 rounded-2xl border border-slate-100">
+                        <div class="font-display font-extrabold text-blue-600 text-lg">5 Câu</div>
+                        <div class="text-slate-500 text-xs font-semibold">Thử thách nhanh</div>
+                    </div>
+                    <div class="bg-slate-50 p-3 rounded-2xl border border-slate-100">
+                        <div class="font-display font-extrabold text-emerald-600 text-lg">+10 Điểm</div>
+                        <div class="text-slate-500 text-xs font-semibold">Mỗi câu đúng</div>
+                    </div>
+                    <div class="bg-slate-50 p-3 rounded-2xl border border-slate-100">
+                        <div class="font-display font-extrabold text-amber-500 text-lg">Cười Xỉu</div>
+                        <div class="text-slate-500 text-xs font-semibold">Với các bẫy vui</div>
+                    </div>
+                </div>
+
+                <button onclick="startQuiz()" class="btn-3d w-full sm:w-auto px-10 py-4 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-display font-extrabold text-lg sm:text-xl flex items-center justify-center gap-3 mx-auto cursor-pointer">
+                    <span>Bắt Đầu Khám Phá Ngay</span>
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- MÀN HÌNH 2: CÂU HỎI TRẮC NGHIỆM (QUIZ SCREEN) -->
+            <div id="quiz-screen" class="hidden">
+                <!-- Thanh tiến trình -->
+                <div class="bg-white rounded-2xl p-4 mb-4 shadow-sm border border-blue-100">
+                    <div class="flex justify-between items-center mb-2">
+                        <span id="question-counter" class="font-display font-extrabold text-blue-600 text-sm sm:text-base">
+                            Câu hỏi 1 / 5
+                        </span>
+                        <span id="progress-percent" class="text-xs font-bold text-slate-400">
+                            20% hoàn thành
+                        </span>
+                    </div>
+                    <div class="w-full h-3 bg-slate-100 rounded-full overflow-hidden">
+                        <div id="progress-bar" class="h-full bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full transition-all duration-500 ease-out" style="width: 20%"></div>
+                    </div>
+                </div>
+
+                <!-- Thẻ câu hỏi chính -->
+                <div id="question-card" class="bg-white rounded-3xl p-5 sm:p-8 shadow-xl border-2 border-blue-100">
+                    <!-- Minh họa trực quan nhỏ cho từng câu -->
+                    <div class="flex items-start gap-3 sm:gap-4 mb-6">
+                        <div id="question-emoji" class="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center text-2xl sm:text-3xl shrink-0">
+                            📡
+                        </div>
+                        <h3 id="question-text" class="font-display font-extrabold text-lg sm:text-2xl text-slate-800 leading-snug pt-1">
+                            Nội dung câu hỏi sẽ hiển thị ở đây...
+                        </h3>
+                    </div>
+
+                    <!-- Danh sách 4 phương án A, B, C, D -->
+                    <div id="options-container" class="grid grid-cols-1 gap-3.5 mb-6">
+                        <!-- Các nút phương án được render động bằng JS -->
+                    </div>
+
+                    <!-- Hộp phản hồi sau khi chọn -->
+                    <div id="feedback-box" class="hidden rounded-2xl p-4 sm:p-5 mb-6 border-2 animate-pop-in">
+                        <div class="flex items-start gap-3">
+                            <div id="feedback-icon" class="text-2xl sm:text-3xl shrink-0">🎉</div>
+                            <div>
+                                <h4 id="feedback-title" class="font-display font-extrabold text-base sm:text-lg mb-1">
+                                    Chính xác!
+                                </h4>
+                                <p id="feedback-message" class="text-sm sm:text-base leading-relaxed">
+                                    Lời giải thích hoặc bình luận hài hước...
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Nút điều hướng câu tiếp theo -->
+                    <div class="flex justify-end">
+                        <button id="next-btn" onclick="nextQuestion()" class="hidden btn-3d w-full sm:w-auto px-8 py-3.5 rounded-2xl bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white font-display font-extrabold text-base sm:text-lg flex items-center justify-center gap-2 cursor-pointer">
+                            <span id="next-btn-text">Câu tiếp theo</span>
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MÀN HÌNH 3: TỔNG KẾT KẾT QUẢ (RESULT SCREEN) -->
+            <div id="result-screen" class="hidden bg-white rounded-3xl p-6 sm:p-10 shadow-xl border-2 border-blue-100 text-center animate-pop-in">
+                <div id="result-trophy" class="inline-flex items-center justify-center w-24 h-24 rounded-full bg-amber-100 text-5xl mb-5 shadow-inner animate-bounce-slow">
+                    🏆
+                </div>
+
+                <h2 id="result-rank" class="font-display font-black text-2xl sm:text-3xl text-slate-800 mb-2">
+                    Bậc Thầy Parabol Vũ Trụ!
+                </h2>
+
+                <div class="inline-flex items-baseline justify-center gap-2 bg-blue-50 border border-blue-200 px-6 py-3 rounded-2xl my-4">
+                    <span class="text-slate-600 font-bold text-base">Tổng điểm:</span>
+                    <span id="final-score" class="font-display font-black text-4xl sm:text-5xl text-blue-600">50</span>
+                    <span class="font-display font-bold text-xl text-slate-400">/ 50</span>
+                </div>
+
+                <p id="result-comment" class="text-slate-600 text-base sm:text-lg max-w-xl mx-auto mb-8 leading-relaxed bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                    Nhận xét vui nhộn theo mức điểm sẽ hiển thị tại đây.
+                </p>
+
+                <!-- Tóm tắt kiến thức rút ra -->
+                <div class="bg-gradient-to-r from-indigo-50 to-blue-50 border border-blue-200 rounded-2xl p-5 mb-8 text-left">
+                    <h4 class="font-display font-extrabold text-blue-800 text-base mb-2 flex items-center gap-2">
+                        <span>💡</span> Ghi nhớ nhanh sau bài khởi động:
+                    </h4>
+                    <p class="text-slate-700 text-sm sm:text-base leading-relaxed">
+                        Các thiết bị như <strong>chảo thu tín hiệu vệ tinh, radar, đèn pha ô tô</strong> đều có bề mặt cong lõm đối xứng, khi cắt qua trục đối xứng sẽ tạo thành hình dạng của <strong>đường Parabol</strong> trong Toán học!
+                    </p>
+                </div>
+
+                <button onclick="restartQuiz()" class="btn-3d w-full sm:w-auto px-9 py-4 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-display font-extrabold text-lg flex items-center justify-center gap-2.5 mx-auto cursor-pointer">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                    </svg>
+                    <span>Chơi Lại (Đảo Đáp Án)</span>
+                </button>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Footer nhỏ gọn -->
+    <footer class="text-center py-3 text-xs font-semibold text-slate-400">
+        Học Toán Vui Nhộn • Ứng dụng thực tế của Đường Parabol
+    </footer>
+
+    <script>
+        // ==========================================
+        // 1. DỮ LIỆU CÂU HỎI & PHẢN HỒI HÀI HƯỚC
+        // ==========================================
+        const quizData = [
+            {
+                id: 1,
+                emoji: "📡",
+                question: "Các em vừa quan sát những thiết bị nào trong video? Chúng thường được sử dụng với mục đích gì?",
+                options: [
+                    {
+                        text: "Chảo thu tín hiệu vệ tinh, radar, đèn pha ô tô; dùng để thu, phát tín hiệu hoặc chiếu sáng.",
+                        isCorrect: true,
+                        feedback: "Chuẩn không cần chỉnh! Mắt các em tinh như radar vậy, nhận diện chính xác cả thiết bị lẫn công dụng."
+                    },
+                    {
+                        text: "Cái chảo rán trứng khổng lồ, quạt nan và đèn pin siêu nhân; dùng để chiên trứng ngoài trời và đuổi muỗi.",
+                        isCorrect: false,
+                        feedback: "Úi chà! Giờ học Toán mà bụng đang đói đúng không? Chảo này mà rán trứng thì chắc đủ cho cả trường ăn mất!"
+                    },
+                    {
+                        text: "Đĩa bay của người ngoài hành tinh, loa phường và đèn sân khấu; dùng để bắt sóng wifi vũ trụ.",
+                        isCorrect: false,
+                        feedback: "Trí tưởng tượng bay xa tận ngân hà luôn! Nhưng rất tiếc đây là công nghệ của Trái Đất mình nhé!"
+                    },
+                    {
+                        text: "Nồi lẩu tự sôi, khiên của Captain America và đèn học; dùng để nấu ăn và chống đạn.",
+                        isCorrect: false,
+                        feedback: "Xem phim siêu anh hùng hơi nhiều rồi nha! Không có khiên Vibranium nào ở đây đâu, nhìn kỹ lại nào!"
+                    }
+                ]
+            },
+            {
+                id: 2,
+                emoji: "🔍",
+                question: "Quan sát hình dạng bên ngoài của các thiết bị trên, các em nhận thấy bề mặt của chúng có đặc điểm gì giống nhau?",
+                options: [
+                    {
+                        text: "Đều có bề mặt cong, lõm vào phía trong và có tính đối xứng.",
+                        isCorrect: true,
+                        feedback: "Quá xuất sắc! Chính độ cong lõm và tính đối xứng hoàn hảo này giúp chúng hội tụ sóng và ánh sáng cực tốt."
+                    },
+                    {
+                        text: "Phẳng lì như sân bay, góc cạnh sắc nhọn và méo mó ngẫu hứng.",
+                        isCorrect: false,
+                        feedback: "Nếu mà phẳng lì và méo mó ngẫu hứng thì tivi nhà mình chỉ xem được toàn 'muỗi' thôi em ơi!"
+                    },
+                    {
+                        text: "Gồ ghề như bề mặt Mặt Trăng, lồi ra ngoài như cái bụng bia.",
+                        isCorrect: false,
+                        feedback: "Haha, lồi ra như bụng bia thì sóng vệ tinh bị bật tung tóe ra ngoài hết chứ sao thu được!"
+                    },
+                    {
+                        text: "Mềm nhũn như bánh flan, có thể gấp gọn bỏ túi quần như giấy.",
+                        isCorrect: false,
+                        feedback: "Bánh flan thì ngon thật nhưng đem làm chảo thu sóng thì gió thổi một cái là bay mất tiêu!"
+                    }
+                ]
+            },
+            {
+                id: 3,
+                emoji: "✂️",
+                question: "Nếu tưởng tượng dùng một mặt phẳng đi qua trục đối xứng để cắt chảo thu tín hiệu, theo các em, đường cong tạo thành có hình dạng như thế nào?",
+                options: [
+                    {
+                        text: "Một đường cong trơn, lõm vào trong và đối xứng qua một trục.",
+                        isCorrect: true,
+                        feedback: "Tuyệt vời! Mặt cắt đi qua trục đối xứng sẽ cho ta một đường cong trơn, lõm vào trong và cân đối hoàn hảo qua trục."
+                    },
+                    {
+                        text: "Đường zíc-zắc sắc nhọn như răng cá mập đang đói.",
+                        isCorrect: false,
+                        feedback: "Cắt ra răng cá mập thì nguy hiểm quá! Chảo vệ tinh hiền lành lắm, đường cong mượt mà chứ không sắc nhọn đâu."
+                    },
+                    {
+                        text: "Hình trái tim lung linh gửi tặng người thương.",
+                        isCorrect: false,
+                        feedback: "Lãng mạn quá mức cho phép rồi! Để dành hình trái tim cho tiết Mỹ thuật nhé, ở đây là đường cong trơn lõm đối xứng nha."
+                    },
+                    {
+                        text: "Đường thẳng tắp như thước kẻ của thầy giáo khó tính.",
+                        isCorrect: false,
+                        feedback: "Thẳng tắp như thước kẻ thì thành cái thước mất rồi, sao còn gọi là chảo lõm được nữa!"
+                    }
+                ]
+            },
+            {
+                id: 4,
+                emoji: "📐",
+                question: "Trong các đường cong đã học ở môn Toán, hình dạng đường cong vừa quan sát gợi cho các em liên tưởng đến đường cong nào?",
+                options: [
+                    {
+                        text: "Đường parabol.",
+                        isCorrect: true,
+                        feedback: "Bingo! Chính xác 100%! Đồ thị hàm số bậc hai y = ax² mà các em đã học chính là đường Parabol đấy."
+                    },
+                    {
+                        text: "Đường tình duyên trắc trở vòng vèo.",
+                        isCorrect: false,
+                        feedback: "Ối giời ơi! Sách giáo khoa Toán chưa cập nhật chương 'Đường tình duyên' này đâu em nhé!"
+                    },
+                    {
+                        text: "Đường đi của một chú kiến đang say xỉn.",
+                        isCorrect: false,
+                        feedback: "Kiến say xỉn thì đi loằng ngoằng không quy luật, còn đường cong của chúng ta cực kỳ chuẩn mực toán học nhé!"
+                    },
+                    {
+                        text: "Đường thẳng song song không bao giờ gặp nhau.",
+                        isCorrect: false,
+                        feedback: "Đã hỏi là 'đường cong' nào mà lại chọn 'đường thẳng song song' là bị đánh lừa ngoạn mục rồi nha!"
+                    }
+                ]
+            },
+            {
+                id: 5,
+                emoji: "🚀",
+                question: "Từ những nhận xét trên, các em có thể dự đoán bề mặt của chảo thu tín hiệu được thiết kế dựa trên hình dạng của đường cong nào?",
+                options: [
+                    {
+                        text: "Được thiết kế dựa trên đường parabol.",
+                        isCorrect: true,
+                        feedback: "Hoàn hảo! Khi quay đường Parabol quanh trục đối xứng của nó, các kỹ sư tạo ra mặt Paraboloid ứng dụng trong chảo vệ tinh và đèn pha!"
+                    },
+                    {
+                        text: "Được thiết kế theo hình củ khoai tây chiên giòn.",
+                        isCorrect: false,
+                        feedback: "Lại nhắc đến đồ ăn nữa rồi! Khoai tây chiên hình yên ngựa chứ không phải hình chảo thu sóng đâu nha."
+                    },
+                    {
+                        text: "Được thiết kế ngẫu nhiên tùy theo tâm trạng của kỹ sư lúc làm việc.",
+                        isCorrect: false,
+                        feedback: "Kỹ sư mà thiết kế theo tâm trạng thì hôm vui bắt được sóng, hôm buồn mất tín hiệu cả nước luôn mất!"
+                    },
+                    {
+                        text: "Được thiết kế dựa trên đường xoắn ốc của vỏ ốc sên.",
+                        isCorrect: false,
+                        feedback: "Vỏ ốc sên thì hợp với tai nghe hoặc lò xo hơn, còn chảo vệ tinh là 'fan cứng' của đường Parabol nhé!"
+                    }
+                ]
+            }
+        ];
+
+        // ==========================================
+        // 2. HỆ THỐNG ÂM THANH (WEB AUDIO API - KHÔNG CẦN FILE NGOÀI)
+        // ==========================================
+        let isSoundEnabled = true;
+        let audioCtx = null;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+
+        function toggleSound() {
+            isSoundEnabled = !isSoundEnabled;
+            document.getElementById('sound-on-icon').classList.toggle('hidden', !isSoundEnabled);
+            document.getElementById('sound-off-icon').classList.toggle('hidden', isSoundEnabled);
+        }
+
+        // Âm thanh vui tươi khi trả lời ĐÚNG
+        function playCorrectSound() {
+            if (!isSoundEnabled) return;
+            initAudio();
+            const now = audioCtx.currentTime;
+            const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+            notes.forEach((freq, i) => {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(freq, now + i * 0.08);
+                gain.gain.setValueAtTime(0.18, now + i * 0.08);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.08 + 0.35);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(now + i * 0.08);
+                osc.stop(now + i * 0.08 + 0.36);
+            });
+        }
+
+        // Âm thanh hài hước "tụt mood nhẹ" khi trả lời SAI
+        function playWrongSound() {
+            if (!isSoundEnabled) return;
+            initAudio();
+            const now = audioCtx.currentTime;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(240, now);
+            osc.frequency.linearRampToValueAtTime(140, now + 0.35);
+            gain.gain.setValueAtTime(0.12, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.38);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start(now);
+            osc.stop(now + 0.4);
+        }
+
+        // Âm thanh chiến thắng ở màn hình tổng kết
+        function playVictorySound() {
+            if (!isSoundEnabled) return;
+            initAudio();
+            const now = audioCtx.currentTime;
+            const notes = [523.25, 659.25, 783.99, 1046.50, 783.99, 1046.50];
+            const times = [0, 0.1, 0.2, 0.32, 0.48, 0.6];
+            notes.forEach((freq, i) => {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(freq, now + times[i]);
+                gain.gain.setValueAtTime(0.2, now + times[i]);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + times[i] + 0.4);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(now + times[i]);
+                osc.stop(now + times[i] + 0.42);
+            });
+        }
+
+        // ==========================================
+        // 3. QUẢN LÝ TRẠNG THÁI TRÒ CHƠI
+        // ==========================================
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let isAnswered = false;
+        let shuffledQuestions = [];
+        const optionLabels = ['A', 'B', 'C', 'D'];
+
+        // Hàm xáo trộn mảng (Fisher-Yates Shuffle)
+        function shuffleArray(array) {
+            const arr = [...array];
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr;
+        }
+
+        // Bắt đầu làm bài
+        function startQuiz() {
+            initAudio();
+            currentQuestionIndex = 0;
+            score = 0;
+            isAnswered = false;
+
+            // Giữ nguyên thứ tự câu hỏi 1->5 để mạch dẫn dắt sư phạm hợp lý,
+            // nhưng xáo trộn ngẫu nhiên 4 phương án A, B, C, D trong từng câu!
+            shuffledQuestions = quizData.map(q => ({
+                ...q,
+                shuffledOptions: shuffleArray(q.options)
+            }));
+
+            document.getElementById('start-screen').classList.add('hidden');
+            document.getElementById('result-screen').classList.add('hidden');
+            document.getElementById('quiz-screen').classList.remove('hidden');
+            document.getElementById('score-badge').classList.remove('hidden');
+            
+            updateScoreUI();
+            renderQuestion();
+        }
+
+        // Cập nhật điểm trên thanh header
+        function updateScoreUI() {
+            document.getElementById('current-score').textContent = score;
+        }
+
+        // Hiển thị câu hỏi hiện tại
+        function renderQuestion() {
+            isAnswered = false;
+            const qData = shuffledQuestions[currentQuestionIndex];
+            const total = shuffledQuestions.length;
+
+            // Cập nhật thanh tiến trình
+            document.getElementById('question-counter').textContent = `Câu hỏi ${currentQuestionIndex + 1} / ${total}`;
+            const percent = Math.round(((currentQuestionIndex + 1) / total) * 100);
+            document.getElementById('progress-percent').textContent = `${percent}% hoàn thành`;
+            document.getElementById('progress-bar').style.width = `${percent}%`;
+
+            // Cập nhật nội dung câu hỏi
+            document.getElementById('question-emoji').textContent = qData.emoji;
+            document.getElementById('question-text').textContent = qData.question;
+
+            // Ẩn hộp phản hồi và nút câu tiếp theo
+            const feedbackBox = document.getElementById('feedback-box');
+            feedbackBox.classList.add('hidden');
+            feedbackBox.classList.remove('bg-emerald-50', 'border-emerald-300', 'text-emerald-900', 'bg-amber-50', 'border-amber-300', 'text-amber-950');
+            
+            const nextBtn = document.getElementById('next-btn');
+            nextBtn.classList.add('hidden');
+            document.getElementById('next-btn-text').textContent = 
+                currentQuestionIndex === total - 1 ? "Xem Kết Quả Tổng Kết" : "Câu tiếp theo";
+
+            // Render 4 phương án A, B, C, D
+            const optionsContainer = document.getElementById('options-container');
+            optionsContainer.innerHTML = '';
+
+            qData.shuffledOptions.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.id = `option-btn-${idx}`;
+                btn.className = 'option-card w-full text-left p-4 sm:p-5 rounded-2xl bg-white border-2 border-slate-200 flex items-center gap-3.5 sm:gap-4 cursor-pointer group';
+                btn.onclick = () => selectOption(idx);
+
+                btn.innerHTML = `
+                    <span id="option-label-${idx}" class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-blue-50 group-hover:bg-blue-600 group-hover:text-white text-blue-700 font-display font-extrabold text-base sm:text-lg flex items-center justify-center shrink-0 transition-colors">
+                        ${optionLabels[idx]}
+                    </span>
+                    <span class="font-semibold text-slate-700 text-base sm:text-lg leading-snug flex-grow">
+                        ${opt.text}
+                    </span>
+                    <span id="option-status-${idx}" class="text-xl shrink-0 hidden"></span>
+                `;
+
+                optionsContainer.appendChild(btn);
+            });
+
+            // Hiệu ứng xuất hiện mượt mà cho thẻ câu hỏi
+            const qCard = document.getElementById('question-card');
+            qCard.classList.remove('animate-pop-in', 'animate-wiggle');
+            void qCard.offsetWidth; // trigger reflow
+            qCard.classList.add('animate-pop-in');
+        }
+
+        // Xử lý khi học sinh chọn 1 phương án
+        function selectOption(selectedIndex) {
+            if (isAnswered) return; // Khóa lựa chọn nếu đã trả lời
+            isAnswered = true;
+
+            const qData = shuffledQuestions[currentQuestionIndex];
+            const selectedOption = qData.shuffledOptions[selectedIndex];
+            const isCorrect = selectedOption.isCorrect;
+
+            // Khóa tất cả các nút và tô màu trạng thái
+            qData.shuffledOptions.forEach((opt, idx) => {
+                const btn = document.getElementById(`option-btn-${idx}`);
+                const label = document.getElementById(`option-label-${idx}`);
+                const status = document.getElementById(`option-status-${idx}`);
+                
+                btn.disabled = true;
+                btn.classList.remove('cursor-pointer', 'group');
+
+                if (opt.isCorrect) {
+                    // Đáp án đúng luôn được làm nổi bật màu xanh
+                    btn.classList.add('option-correct');
+                    label.className = 'w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-emerald-600 text-white font-display font-extrabold text-base sm:text-lg flex items-center justify-center shrink-0';
+                    status.textContent = '✅';
+                    status.classList.remove('hidden');
+                } else if (idx === selectedIndex && !isCorrect) {
+                    // Đáp án sai người chơi vừa chọn
+                    btn.classList.add('option-wrong');
+                    label.className = 'w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-red-600 text-white font-display font-extrabold text-base sm:text-lg flex items-center justify-center shrink-0';
+                    status.textContent = '❌';
+                    status.classList.remove('hidden');
+                } else {
+                    // Các phương án sai còn lại làm mờ nhẹ
+                    btn.classList.add('option-dimmed');
+                }
+            });
+
+            // Xử lý điểm số, âm thanh và hiệu ứng hình ảnh
+            const feedbackBox = document.getElementById('feedback-box');
+            const feedbackIcon = document.getElementById('feedback-icon');
+            const feedbackTitle = document.getElementById('feedback-title');
+            const feedbackMessage = document.getElementById('feedback-message');
+
+            feedbackBox.classList.remove('hidden');
+
+            if (isCorrect) {
+                score += 10;
+                updateScoreUI();
+                playCorrectSound();
+
+                // Bắn pháo giấy confetti chúc mừng
+                if (typeof confetti === 'function') {
+                    confetti({
+                        particleCount: 65,
+                        spread: 60,
+                        origin: { y: 0.7 }
+                    });
+                }
+
+                feedbackBox.classList.add('bg-emerald-50', 'border-emerald-300', 'text-emerald-900');
+                feedbackIcon.textContent = '🎉';
+                feedbackTitle.textContent = 'Chính xác tuyệt đối! (+10 điểm)';
+                feedbackMessage.textContent = selectedOption.feedback;
+            } else {
+                playWrongSound();
+
+                // Hiệu ứng rung nhẹ thẻ câu hỏi
+                const qCard = document.getElementById('question-card');
+                qCard.classList.remove('animate-pop-in', 'animate-wiggle');
+                void qCard.offsetWidth;
+                qCard.classList.add('animate-wiggle');
+
+                feedbackBox.classList.add('bg-amber-50', 'border-amber-300', 'text-amber-950');
+                feedbackIcon.textContent = '🤭';
+                feedbackTitle.textContent = 'Ối dồi ôi, dính bẫy vui rồi!';
+                feedbackMessage.textContent = selectedOption.feedback;
+            }
+
+            // Hiển thị nút "Câu tiếp theo"
+            document.getElementById('next-btn').classList.remove('hidden');
+        }
+
+        // Chuyển sang câu tiếp theo hoặc màn hình kết quả
+        function nextQuestion() {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < shuffledQuestions.length) {
+                renderQuestion();
+            } else {
+                showResults();
+            }
+        }
+
+        // Hiển thị màn hình tổng kết
+        function showResults() {
+            document.getElementById('quiz-screen').classList.add('hidden');
+            document.getElementById('result-screen').classList.remove('hidden');
+            document.getElementById('final-score').textContent = score;
+
+            const trophyEl = document.getElementById('result-trophy');
+            const rankEl = document.getElementById('result-rank');
+            const commentEl = document.getElementById('result-comment');
+
+            if (score === 50) {
+                trophyEl.textContent = '👑';
+                rankEl.textContent = 'Giáo Sư Parabol Đỉnh Cao!';
+                commentEl.textContent = '50/50 điểm tuyệt đối! Không một cú lừa hài hước nào làm khó được em. Đôi mắt quan sát và tư duy Toán học của em sắc bén như tia laser hội tụ tại tiêu điểm Parabol vậy!';
+                playVictorySound();
+                if (typeof confetti === 'function') {
+                    confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
+                }
+            } else if (score >= 30) {
+                trophyEl.textContent = '🚀';
+                rankEl.textContent = 'Nhà Thám Hiểm Parabol Tài Năng!';
+                commentEl.textContent = `Chúc mừng em đạt ${score}/50 điểm! Em đã nắm rất vững đặc điểm của đường Parabol trong thực tế rồi đấy. Chỉ sẩy chân một xíu trước mấy câu đùa vui thôi!`;
+                playVictorySound();
+            } else {
+                trophyEl.textContent = '🤣';
+                rankEl.textContent = 'Thánh Hài Hước Lớp Học!';
+                commentEl.textContent = `Em đạt ${score}/50 điểm! Có vẻ em hơi đam mê "chảo rán trứng" và "đĩa bay người ngoài hành tinh" rồi đúng không? Bấm chơi lại để chinh phục điểm tối đa nào!`;
+            }
+        }
+
+        // Chơi lại từ đầu
+        function restartQuiz() {
+            startQuiz();
+        }
+    </script>
+</body>
+</html>
